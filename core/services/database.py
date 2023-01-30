@@ -26,8 +26,7 @@ class DataBase:
             await db.execute('''CREATE TABLE IF NOT EXISTS users (
                                             user_id INTEGER PRIMARY KEY,
                                             username TEXT,
-                                            first_name TEXT,
-                                            last_name TEXT,
+                                            name_for_report TEXT,
                                             is_mailing INTEGER
                                             )''')
 
@@ -57,7 +56,9 @@ class DataBase:
             except IntegrityError:
                 pass
 
-    async def user_exists(self, user_id: int) -> bool:
+    async def user_exists(self,
+                          user_id: int
+                          ) -> bool:
         """Проверка на существования пользователя в базе"""
         answer: Any = Iterable[Row]
         async with sl.connect(self.db_path) as db:
@@ -66,39 +67,90 @@ class DataBase:
 
         return bool(len(answer))
 
-    async def add_user(self, user_id: int, username: str, first_name: str, last_name: str):
+    async def add_user(self,
+                       user_id: int,
+                       username: str,
+                       name_for_report: str
+                       ) -> Any:
         """Добавление пользователя в базу"""
         async with sl.connect(self.db_path) as db:
-            await db.execute('''INSERT INTO users (user_id, username, first_name, last_name, is_mailing) 
-                            VALUES (?, ?, ?, ?, ?)''',
-                             (user_id, username, first_name, last_name, 1))
+            await db.execute('''INSERT INTO users (user_id, username, name_for_report, is_mailing) 
+                            VALUES (?, ?, ?, ?)''',
+                             (user_id, username, name_for_report, 1))
             await db.commit()
 
-    async def del_user(self, user_id: int):
+    async def del_user(self,
+                       user_id: int
+                       ) -> Any:
+        """Удаление пользователя из базы"""
         async with sl.connect(self.db_path) as db:
             await db.execute('''DELETE FROM users WHERE user_id = ?''', (user_id,))
             await db.commit()
 
-    async def set_is_mailing(self, user_id: int, value: int):
+    async def all_users(self) -> Any:
+        """Получение всех пользователей"""
+        async with sl.connect(self.db_path) as db:
+            cursor = await db.execute('''SELECT * FROM users''')
+            users = await cursor.fetchall()
+            return users
+
+    async def set_is_mailing(self,
+                             user_id: int,
+                             value: bool
+                             ) -> Any:
         """Установка флага рассылки для пользователя"""
         async with sl.connect(self.db_path) as db:
-            await db.execute('''UPDATE users SET is_mailing = ? WHERE user_id = ?''', (value, user_id))
+            await db.execute('''UPDATE users SET is_mailing = ? WHERE user_id = ?''', (int(value), user_id))
             await db.commit()
 
-    async def add_journal_entry(self, is_check: bool, status_name: str, checking_time: str,
-                                user_id: int,  reason_not_work: str = None):
-        """Добавление записи в журнал"""
+    async def __get_status_id(self,
+                              status_name: str
+                              ) -> Any:
+        """Получение id статуса по его названию"""
         async with sl.connect(self.db_path) as db:
-            cursor = await db.execute('''SELECT status_id FROM status WHERE status_name = ?''', (status_name,))
-            status_id = await cursor.fetchone()
+            if status_name is not None:
+                cursor = await db.execute('''SELECT status_id FROM status WHERE status_name = ?''', (status_name,))
+                row = await cursor.fetchone()
+                return row[0]
+            else:
+                return None
+
+    async def add_journal_entry(self,
+                                checking_time: str,
+                                user_id: int,
+                                is_check: bool = False,
+                                status_name: str = None,
+                                reason_not_work: str = None
+                                ) -> Any:
+        """Добавление записи в журнал"""
+        status_id = await self.__get_status_id(status_name)
+        async with sl.connect(self.db_path) as db:
             await db.execute('''INSERT INTO journal (is_check, status_id, reason_not_work, checking_time, user_id)
                             VALUES (?, ?, ?, ?, ?)''',
-                             (int(is_check), status_id[0], reason_not_work, checking_time, user_id))
+                             (int(is_check), status_id, reason_not_work, checking_time, user_id))
             await db.commit()
 
-    async def del_journal_entry_by_date(self, user_id: int, date: str):
+    async def change_journal_entry_by_date(self,
+                                           user_id: int,
+                                           checking_date: str,
+                                           is_check: bool = False,
+                                           status_name: str = None,
+                                           reason_not_work: str = None
+                                           ) -> Any:
+        """Изменение записи в журнале по конкретного пользователя за конкретный день"""
+        status_id = await self.__get_status_id(status_name)
+        async with sl.connect(self.db_path) as db:
+            await db.execute('''UPDATE journal SET is_check = ?, status_id = ?, reason_not_work = ?
+                            WHERE user_id = ? AND checking_time LIKE ?''',
+                             (int(is_check), status_id, reason_not_work, user_id, checking_date+'%'))
+            await db.commit()
+
+    async def del_journal_entry_by_date(self,
+                                        user_id: int,
+                                        checking_date: str
+                                        ) -> Any:
         """Удаление записи из журнала для конкретного пользователя за конкретный день"""
         async with sl.connect(self.db_path) as db:
             await db.execute('''DELETE FROM journal WHERE user_id = ? AND checking_time LIKE ?''',
-                             (user_id, date+'%'))
+                             (user_id, checking_date+'%'))
             await db.commit()
