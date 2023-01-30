@@ -70,13 +70,31 @@ class DataBase:
     async def add_user(self,
                        user_id: int,
                        username: str,
-                       name_for_report: str
+                       name_for_report: str = None
                        ) -> Any:
         """Добавление пользователя в базу"""
         async with sl.connect(self.db_path) as db:
             await db.execute('''INSERT INTO users (user_id, username, name_for_report, is_mailing) 
                             VALUES (?, ?, ?, ?)''',
                              (user_id, username, name_for_report, 1))
+            await db.commit()
+
+    async def set_is_mailing(self,
+                             user_id: int,
+                             value: bool
+                             ) -> Any:
+        """Установка флага рассылки для пользователя"""
+        async with sl.connect(self.db_path) as db:
+            await db.execute('''UPDATE users SET is_mailing = ? WHERE user_id = ?''', (int(value), user_id))
+            await db.commit()
+
+    async def set_name_for_report(self,
+                                  user_id: int,
+                                  value: str
+                                  ) -> Any:
+        """Установка ФИО, отображаемое в отчете"""
+        async with sl.connect(self.db_path) as db:
+            await db.execute('''UPDATE users SET name_for_report = ? WHERE user_id = ?''', (value, user_id))
             await db.commit()
 
     async def del_user(self,
@@ -87,21 +105,19 @@ class DataBase:
             await db.execute('''DELETE FROM users WHERE user_id = ?''', (user_id,))
             await db.commit()
 
-    async def all_users(self) -> Any:
+    async def get_all_users(self) -> Any:
         """Получение всех пользователей"""
         async with sl.connect(self.db_path) as db:
             cursor = await db.execute('''SELECT * FROM users''')
             users = await cursor.fetchall()
             return users
 
-    async def set_is_mailing(self,
-                             user_id: int,
-                             value: bool
-                             ) -> Any:
-        """Установка флага рассылки для пользователя"""
+    async def get_mailing_users(self) -> Any:
+        """Получение пользователей для рассылки"""
         async with sl.connect(self.db_path) as db:
-            await db.execute('''UPDATE users SET is_mailing = ? WHERE user_id = ?''', (int(value), user_id))
-            await db.commit()
+            cursor = await db.execute('''SELECT * FROM users WHERE is_mailing = 1''')
+            users = await cursor.fetchall()
+            return users
 
     async def __get_status_id(self,
                               status_name: str

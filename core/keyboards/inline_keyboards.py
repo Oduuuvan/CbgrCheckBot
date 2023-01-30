@@ -6,7 +6,7 @@ from core.services.utils import MyCallback
 def first_keyboard() -> InlineKeyboardMarkup:
     kb = InlineKeyboardBuilder()
     btn_office = InlineKeyboardButton(text='В офисе', callback_data=MyCallback(callback='office').pack())
-    btn_remote = InlineKeyboardButton(text='На удаленке', callback_data=MyCallback(callback='remote').pack())
+    btn_remote = InlineKeyboardButton(text='На удалёнке', callback_data=MyCallback(callback='remote').pack())
     btn_not_work = InlineKeyboardButton(text='Не работаю', callback_data=MyCallback(callback='not_work').pack())
     kb.add(btn_office).add(btn_remote).add(btn_not_work)
     return kb.as_markup()

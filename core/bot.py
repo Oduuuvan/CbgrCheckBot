@@ -2,8 +2,12 @@ from aiogram import Bot, Dispatcher
 import logging
 import asyncio
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from apscheduler.triggers.cron import CronTrigger
+
 from config import Config
 from core.handlers import commands, callback, states
+from core.handlers.scheduled import mailing
 from services import db
 from handlers.commands import set_commands
 
@@ -17,6 +21,11 @@ async def main() -> None:
     # Создание бота и главного роутера
     bot = Bot(token=Config.token, parse_mode='HTML')
     dp = Dispatcher()
+
+    # Добавление задач по расписанию
+    scheduler = AsyncIOScheduler(timezone='Europe/Moscow')
+    scheduler.add_job(mailing, trigger=CronTrigger.from_crontab('0 8 * * MON-FRI'), kwargs={'bot': bot})
+    scheduler.start()
 
     # Подключение роутеров
     dp.include_router(commands.router)
