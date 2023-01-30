@@ -13,4 +13,8 @@ async def mailing(bot: Bot):
         await bot.send_message(chat_id=user_id, text='Пора отмечаться!', reply_markup=first_keyboard())
 
 
+async def send_report(bot: Bot):
+    pass
+
+
 

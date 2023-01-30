@@ -109,15 +109,15 @@ class DataBase:
         """Получение всех пользователей"""
         async with sl.connect(self.db_path) as db:
             cursor = await db.execute('''SELECT * FROM users''')
-            users = await cursor.fetchall()
-            return users
+            row = await cursor.fetchall()
+            return row
 
     async def get_mailing_users(self) -> Any:
         """Получение пользователей для рассылки"""
         async with sl.connect(self.db_path) as db:
             cursor = await db.execute('''SELECT * FROM users WHERE is_mailing = 1''')
-            users = await cursor.fetchall()
-            return users
+            row = await cursor.fetchall()
+            return row
 
     async def __get_status_id(self,
                               status_name: str
@@ -170,3 +170,14 @@ class DataBase:
             await db.execute('''DELETE FROM journal WHERE user_id = ? AND checking_time LIKE ?''',
                              (user_id, checking_date+'%'))
             await db.commit()
+
+    async def get_data_for_report(self,
+                                  checking_date: str
+                                  ) -> Any:
+        async with sl.connect(self.db_path) as db:
+            cursor = await db.execute('''SELECT u.name_for_report, j.is_check, s.status_name, j.reason_not_work, 
+                                        j.checking_time                           
+                                        FROM journal j
+                                        JOIN users u ON j.user_id = u.user_id
+                                        JOIN status s ON j.status_id = s.status_id
+                                        WHERE j.checking_time LIKE ?''', (checking_date+'%',))
