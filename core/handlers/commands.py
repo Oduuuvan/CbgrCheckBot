@@ -3,8 +3,7 @@ from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.types import BotCommand, Message
 
-from core.config import Config
-from core.keyboards.inline_keyboards import first_keyboard
+from core.filters.cmd_filters import filter_start, filter_stop, filter_mailing, filter_change_name
 from core.services import db
 from core.services.utils import StateFIO, current_datetime
 
@@ -21,7 +20,7 @@ async def set_commands(bot: Bot):
     await bot.set_my_commands(commands=commands_list)
 
 
-@router.message(Command('start'))
+@router.message(filter_start)
 async def cmd_start(message: Message, state: FSMContext):
     if not await db.user_exists(user_id=message.from_user.id):
         await db.add_user(message.from_user.id, message.from_user.username)
@@ -33,7 +32,7 @@ async def cmd_start(message: Message, state: FSMContext):
         await message.answer('Я Вас уже знаю!')
 
 
-@router.message(Command('stop'))
+@router.message(filter_stop)
 async def cmd_stop(message: Message):
     if await db.user_exists(user_id=message.from_user.id):
         await db.del_user(message.from_user.id)
@@ -42,7 +41,7 @@ async def cmd_stop(message: Message):
         await message.answer('Я Вас не знаю -_-\nНапишите /start, и мы с Вами познакомимся')
 
 
-@router.message(Command('mailing'))
+@router.message(filter_mailing)
 async def cmd_mailing(message: Message):
     if await db.user_exists(user_id=message.from_user.id):
         await db.set_is_mailing(message.from_user.id, True)
@@ -51,16 +50,10 @@ async def cmd_mailing(message: Message):
         await message.answer('Я Вас не знаю -_-\nНапишите /start, и мы с Вами познакомимся')
 
 
-@router.message(Command('change_name'))
+@router.message(filter_change_name)
 async def cmd_change_name(message: Message, state: FSMContext):
     if await db.user_exists(user_id=message.from_user.id):
         await message.answer('Введите новые значения Фамилии и Имени')
         await state.set_state(StateFIO.GET_FIO)
     else:
         await message.answer('Я Вас не знаю -_-\nНапишите /start, и мы с Вами познакомимся')
-
-
-@router.message(Command('test'))
-async def cmd_test(message: Message):
-    await db.add_journal_entry(user_id=Config.admin_id, checking_time=current_datetime())
-    await message.answer(text='test', reply_markup=first_keyboard())
