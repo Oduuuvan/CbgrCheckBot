@@ -1,6 +1,6 @@
 from aiogram.utils.keyboard import InlineKeyboardBuilder, InlineKeyboardMarkup, InlineKeyboardButton
 
-from core.services.utils import MyCallback
+from core.filters.callback_filters import MyCallback
 
 
 def first_keyboard() -> InlineKeyboardMarkup:

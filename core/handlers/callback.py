@@ -3,32 +3,34 @@ from aiogram.types.callback_query import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from pytz import timezone
 
+from core.filters.callback_filters import filter_office, filter_remote, filter_not_work, filter_missclick
+from core.filters.states_filters import StateReasonNotWork
 from core.services import db
-from core.services.utils import current_datetime, MyCallback, StateReasonNotWork, change_journal_entry_callback
+from core.services.utils import change_journal_entry_callback
 from core.keyboards.inline_keyboards import missclick_keyboard, first_keyboard
 
 router = Router()
 
 
-@router.callback_query(MyCallback.filter(F.callback == 'office'))
+@router.callback_query(filter_office)
 async def office_callback(callback: CallbackQuery):
     await change_journal_entry_callback(callback)
     await callback.message.edit_text('<b><i>В офисе</i></b>', reply_markup=missclick_keyboard())
 
 
-@router.callback_query(MyCallback.filter(F.callback == 'remote'))
+@router.callback_query(filter_remote)
 async def remote_callback(callback: CallbackQuery):
     await change_journal_entry_callback(callback)
     await callback.message.edit_text('<b><i>Удалённо</i></b>', reply_markup=missclick_keyboard())
 
 
-@router.callback_query(MyCallback.filter(F.callback == 'not_work'))
+@router.callback_query(filter_not_work)
 async def not_work_callback(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text('Чтобы я Вас отметил, напишите причину почему Вы сегодня не работаете')
     await state.set_state(StateReasonNotWork.GET_REASON)
 
 
-@router.callback_query(MyCallback.filter(F.callback == 'missclick'))
+@router.callback_query(filter_missclick)
 async def not_work_callback(callback: CallbackQuery):
     checking_date = callback.message.date.astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d')
     await db.change_journal_entry_by_date(user_id=callback.from_user.id, checking_date=checking_date)

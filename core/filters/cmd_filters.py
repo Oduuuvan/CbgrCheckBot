@@ -1,5 +1,6 @@
 from aiogram.filters import Command
 
+
 filter_start = Command('start')
 filter_stop = Command('stop')
 filter_mailing = Command('mailing')

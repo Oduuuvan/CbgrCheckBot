@@ -3,8 +3,8 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import BotCommand, Message
 
 from core.filters.cmd_filters import filter_start, filter_stop, filter_mailing, filter_change_name
+from core.filters.states_filters import StateFIO
 from core.services import db
-from core.services.utils import StateFIO
 
 router = Router()
 

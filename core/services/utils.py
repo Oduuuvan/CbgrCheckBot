@@ -2,22 +2,8 @@ from datetime import datetime
 
 from aiogram.types import CallbackQuery
 from pytz import timezone
-from aiogram.filters.callback_data import CallbackData
-from aiogram.fsm.state import StatesGroup, State
 
 from core.services import db
-
-
-class MyCallback(CallbackData, prefix="status"):
-    callback: str
-
-
-class StateReasonNotWork(StatesGroup):
-    GET_REASON = State()
-
-
-class StateFIO(StatesGroup):
-    GET_FIO = State()
 
 
 def current_datetime():
