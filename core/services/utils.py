@@ -24,6 +24,10 @@ def current_datetime():
     return datetime.now(timezone('Europe/Moscow')).strftime('%Y-%m-%d %H:%M:%S')
 
 
+def current_date():
+    return current_datetime().split(' ')[0]
+
+
 async def change_journal_entry_callback(callback: CallbackQuery):
     checking_date = callback.message.date.astimezone(timezone('Europe/Moscow')).strftime('%Y-%m-%d')
     status_name = callback.data.split(':')[1]

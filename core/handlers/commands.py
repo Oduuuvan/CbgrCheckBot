@@ -17,7 +17,6 @@ async def set_commands(bot: Bot):
                     BotCommand(command='stop', description='Завершить работу с ботом'),
                     BotCommand(command='mailing', description='Присоединиться к рассылке'),
                     BotCommand(command='change_name', description='Изменить значения ФИО'),
-                    BotCommand(command='test', description='Отладочная команда')
                     ]
     await bot.set_my_commands(commands=commands_list)
 
@@ -63,11 +62,5 @@ async def cmd_change_name(message: Message, state: FSMContext):
 
 @router.message(Command('test'))
 async def cmd_test(message: Message):
-    await db.add_journal_entry(user_id=Config.admin_ids, checking_time=current_datetime())
-    await message.answer(text='test', reply_markup=first_keyboard())
-
-
-@router.message(Command('test1'))
-async def cmd_test1(message: Message):
-    await db.add_journal_entry(user_id=Config.admin_ids, checking_time=current_datetime())
+    await db.add_journal_entry(user_id=Config.admin_id, checking_time=current_datetime())
     await message.answer(text='test', reply_markup=first_keyboard())

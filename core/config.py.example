@@ -1,0 +1,9 @@
+from dataclasses import dataclass
+
+
+@dataclass
+class Config:
+    token: str = 'BOT_TOKEN'
+    admin_id: int = 000000000
+    db_folder: str = 'DB_FOLDER/'
+    csv_folder: str = 'CSV_FOLDER/'

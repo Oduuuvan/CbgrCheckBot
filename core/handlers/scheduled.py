@@ -1,8 +1,12 @@
 from aiogram import Bot
+from aiogram.types import FSInputFile
 
+from core.config import Config
 from core.keyboards.inline_keyboards import first_keyboard
 from core.services import db
-from core.services.utils import current_datetime
+from core.services.utils import current_datetime, current_date
+from aiofiles import open, os
+from aiocsv import AsyncWriter
 
 
 async def mailing(bot: Bot):
@@ -13,8 +17,14 @@ async def mailing(bot: Bot):
         await bot.send_message(chat_id=user_id, text='Пора отмечаться!', reply_markup=first_keyboard())
 
 
-async def send_report(bot: Bot):
-    pass
-
-
-
+async def send_report(bot: Bot = None):
+    csv_path = f'{Config.csv_folder}report-{current_date()}.csv'
+    async with open(csv_path, 'w') as f:
+        writer = AsyncWriter(f, delimiter=';', dialect='unix')
+        await writer.writerow(('Сотрудник', 'Статус', 'Где работает', 'Почему не работает', 'Дата рассылки'))
+        rows = await db.get_data_for_report(current_date())
+        await writer.writerows(rows)
+    print('finish write')
+    await bot.send_document(chat_id=Config.admin_id,
+                            document=FSInputFile(csv_path))
+    await os.remove(csv_path)

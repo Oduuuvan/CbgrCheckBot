@@ -19,7 +19,7 @@ async def office_callback(callback: CallbackQuery):
 @router.callback_query(MyCallback.filter(F.callback == 'remote'))
 async def remote_callback(callback: CallbackQuery):
     await change_journal_entry_callback(callback)
-    await callback.message.edit_text('<b><i>На удалёнке</i></b>', reply_markup=missclick_keyboard())
+    await callback.message.edit_text('<b><i>Удалённо</i></b>', reply_markup=missclick_keyboard())
 
 
 @router.callback_query(MyCallback.filter(F.callback == 'not_work'))

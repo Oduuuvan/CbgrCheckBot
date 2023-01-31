@@ -18,7 +18,7 @@ class DataBase:
         return cls.__instance
 
     def __init__(self):
-        self.db_path = Config.db_path
+        self.db_path = f'{Config.db_folder}chatbot.db'
 
     async def init_database(self):
         """Инициализация базы данных"""
@@ -32,7 +32,8 @@ class DataBase:
 
             await db.execute('''CREATE TABLE IF NOT EXISTS status (
                                             status_id INTEGER PRIMARY KEY,
-                                            status_name TEXT
+                                            status_name TEXT,
+                                            title TEXT
                                             )''')
 
             await db.execute('''CREATE TABLE IF NOT EXISTS journal (
@@ -47,11 +48,11 @@ class DataBase:
                                             )''')
 
             try:
-                await db.execute('''INSERT INTO status VALUES (1, "office")''')
+                await db.execute('''INSERT INTO status VALUES (1, "office","В офисе")''')
                 await db.commit()
-                await db.execute('''INSERT INTO status VALUES (2, "remote")''')
+                await db.execute('''INSERT INTO status VALUES (2, "remote", "Удалённо")''')
                 await db.commit()
-                await db.execute('''INSERT INTO status VALUES (3, "not_work")''')
+                await db.execute('''INSERT INTO status VALUES (3, "not_work", "Не работаю")''')
                 await db.commit()
             except IntegrityError:
                 pass
@@ -109,15 +110,15 @@ class DataBase:
         """Получение всех пользователей"""
         async with sl.connect(self.db_path) as db:
             cursor = await db.execute('''SELECT * FROM users''')
-            row = await cursor.fetchall()
-            return row
+            rows = await cursor.fetchall()
+            return rows
 
     async def get_mailing_users(self) -> Any:
         """Получение пользователей для рассылки"""
         async with sl.connect(self.db_path) as db:
             cursor = await db.execute('''SELECT * FROM users WHERE is_mailing = 1''')
-            row = await cursor.fetchall()
-            return row
+            rows = await cursor.fetchall()
+            return rows
 
     async def __get_status_id(self,
                               status_name: str
@@ -174,10 +175,20 @@ class DataBase:
     async def get_data_for_report(self,
                                   checking_date: str
                                   ) -> Any:
+        """Получение данных для отчета"""
         async with sl.connect(self.db_path) as db:
-            cursor = await db.execute('''SELECT u.name_for_report, j.is_check, s.status_name, j.reason_not_work, 
-                                        j.checking_time                           
+            cursor = await db.execute('''SELECT 
+                                            u.name_for_report, 
+                                            CASE 
+                                                WHEN j.is_check = TRUE THEN 'Отметился'
+                                                WHEN j.is_check = FALSE THEN 'Не отметился'
+                                            END AS is_check,
+                                            s.title,
+                                            j.reason_not_work, 
+                                            date(j.checking_time) AS checking_date                         
                                         FROM journal j
                                         JOIN users u ON j.user_id = u.user_id
-                                        JOIN status s ON j.status_id = s.status_id
+                                        LEFT JOIN status s ON j.status_id = s.status_id
                                         WHERE j.checking_time LIKE ?''', (checking_date+'%',))
+            rows = await cursor.fetchall()
+            return rows
