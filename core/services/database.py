@@ -1,8 +1,6 @@
-import datetime
 from sqlite3 import Row, IntegrityError
 from typing import Iterable, Any
 
-import aiosqlite
 import aiosqlite as sl
 from core.config import Config
 
@@ -27,7 +25,8 @@ class DataBase:
                                             user_id INTEGER PRIMARY KEY,
                                             username TEXT,
                                             name_for_report TEXT,
-                                            is_mailing INTEGER
+                                            is_mailing INTEGER,
+                                            is_deleted INTEGER
                                             )''')
 
             await db.execute('''CREATE TABLE IF NOT EXISTS status (
@@ -65,7 +64,16 @@ class DataBase:
         async with sl.connect(self.db_path) as db:
             cursor = await db.execute('SELECT user_id FROM users WHERE user_id = ?', (user_id,))
             answer = await cursor.fetchmany(1)
+        return bool(len(answer))
 
+    async def user_is_deleted(self,
+                              user_id: int
+                              ) -> bool:
+        """Проверка на флаг удаленного пользователя"""
+        answer: Any = Iterable[Row]
+        async with sl.connect(self.db_path) as db:
+            cursor = await db.execute('SELECT user_id FROM users WHERE user_id = ? AND is_deleted = 1', (user_id,))
+            answer = await cursor.fetchmany(1)
         return bool(len(answer))
 
     async def add_user(self,
@@ -75,9 +83,9 @@ class DataBase:
                        ) -> Any:
         """Добавление пользователя в базу"""
         async with sl.connect(self.db_path) as db:
-            await db.execute('''INSERT INTO users (user_id, username, name_for_report, is_mailing) 
-                            VALUES (?, ?, ?, ?)''',
-                             (user_id, username, name_for_report, 1))
+            await db.execute('''INSERT INTO users (user_id, username, name_for_report, is_mailing, is_deleted) 
+                            VALUES (?, ?, ?, ?, ?)''',
+                             (user_id, username, name_for_report, 1, 1))
             await db.commit()
 
     async def set_is_mailing(self,
@@ -89,6 +97,15 @@ class DataBase:
             await db.execute('''UPDATE users SET is_mailing = ? WHERE user_id = ?''', (int(value), user_id))
             await db.commit()
 
+    async def set_is_deleted(self,
+                             user_id: int,
+                             value: bool
+                             ) -> Any:
+        """Установка флага удаления для пользователя"""
+        async with sl.connect(self.db_path) as db:
+            await db.execute('''UPDATE users SET is_deleted = ? WHERE user_id = ?''', (int(value), user_id))
+            await db.commit()
+
     async def set_name_for_report(self,
                                   user_id: int,
                                   value: str
@@ -98,25 +115,10 @@ class DataBase:
             await db.execute('''UPDATE users SET name_for_report = ? WHERE user_id = ?''', (value, user_id))
             await db.commit()
 
-    async def del_user(self,
-                       user_id: int
-                       ) -> Any:
-        """Удаление пользователя из базы"""
-        async with sl.connect(self.db_path) as db:
-            await db.execute('''DELETE FROM users WHERE user_id = ?''', (user_id,))
-            await db.commit()
-
-    async def get_all_users(self) -> Any:
-        """Получение всех пользователей"""
-        async with sl.connect(self.db_path) as db:
-            cursor = await db.execute('''SELECT * FROM users''')
-            rows = await cursor.fetchall()
-            return rows
-
     async def get_mailing_users(self) -> Any:
         """Получение пользователей для рассылки"""
         async with sl.connect(self.db_path) as db:
-            cursor = await db.execute('''SELECT * FROM users WHERE is_mailing = 1''')
+            cursor = await db.execute('''SELECT * FROM users WHERE is_mailing = 1 AND is_deleted = 0''')
             rows = await cursor.fetchall()
             return rows
 
@@ -160,16 +162,6 @@ class DataBase:
             await db.execute('''UPDATE journal SET is_check = ?, status_id = ?, reason_not_work = ?
                             WHERE user_id = ? AND checking_time LIKE ?''',
                              (int(is_check), status_id, reason_not_work, user_id, checking_date+'%'))
-            await db.commit()
-
-    async def del_journal_entry_by_date(self,
-                                        user_id: int,
-                                        checking_date: str
-                                        ) -> Any:
-        """Удаление записи из журнала для конкретного пользователя за конкретный день"""
-        async with sl.connect(self.db_path) as db:
-            await db.execute('''DELETE FROM journal WHERE user_id = ? AND checking_time LIKE ?''',
-                             (user_id, checking_date+'%'))
             await db.commit()
 
     async def get_data_for_report(self,

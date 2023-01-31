@@ -27,6 +27,7 @@ async def get_reason(message: Message, state: FSMContext):
 
 @router.message(StateFIO.GET_FIO)
 async def get_fio(message: Message, state: FSMContext):
+    await db.set_is_deleted(message.from_user.id, False)
     await db.set_name_for_report(message.from_user.id, message.text)
     await message.answer(f'Теперь Вы записаны как: <b><i>{message.text}</i></b>')
     await state.clear()
