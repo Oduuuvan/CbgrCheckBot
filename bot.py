@@ -6,12 +6,12 @@ from aiogram.types import Message
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from apscheduler.triggers.cron import CronTrigger
 
-from config import Config
+from core.config import Config
 from core.filters.cmd_filters import filter_test_mailing, filter_test_report
 from core.handlers import commands, callback, states
 from core.handlers.scheduled import mailing, send_report
-from services import db
-from handlers.commands import set_commands
+from core.services import db
+from core.handlers.commands import set_commands
 
 
 async def main() -> None:

@@ -1,7 +1,6 @@
 from aiogram import Router
 from aiogram.types import Message
 from aiogram.fsm.context import FSMContext
-from pytz import timezone
 
 from core.filters.states_filters import StateReasonNotWork, StateFIO
 from core.services import db

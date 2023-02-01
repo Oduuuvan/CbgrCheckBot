@@ -56,5 +56,8 @@ async def not_work_callback(callback: CallbackQuery):
     if await db.user_is_deleted(user_id=callback.from_user.id):
         await callback.answer('Я Вас не знаю -_-\nНапишите /start, и мы с Вами познакомимся')
     else:
-        await db.set_is_mailing(callback.from_user.id, True)
-        await callback.message.answer('Вы снова добавлены к рассылке!')
+        if await db.user_is_mailing(user_id=callback.from_user.id):
+            await callback.answer('Вы уже участвуете в рассылке')
+        else:
+            await db.set_is_mailing(callback.from_user.id, True)
+            await callback.answer('Вы снова добавлены к рассылке!')

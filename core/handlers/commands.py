@@ -48,7 +48,7 @@ async def cmd_mailing(message: Message):
         await message.answer('Я Вас не знаю -_-\nНапишите /start, и мы с Вами познакомимся')
     else:
         if await db.user_is_mailing(user_id=message.from_user.id):
-            await message.answer('Вы участвуете в рассылке')
+            await message.answer('Вы уже участвуете в рассылке')
         else:
             await db.set_is_mailing(message.from_user.id, True)
             await message.answer('Вы снова добавлены к рассылке!')

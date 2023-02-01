@@ -1,12 +1,12 @@
 from aiogram import Bot
 from aiogram.types import FSInputFile
+from aiofiles import open, os
+from aiocsv import AsyncWriter
 
 from core.config import Config
 from core.keyboards.inline_keyboards import first_keyboard
 from core.services import db
 from core.services.utils import current_datetime, current_date
-from aiofiles import open, os
-from aiocsv import AsyncWriter
 
 
 async def mailing(bot: Bot):
@@ -19,7 +19,7 @@ async def mailing(bot: Bot):
 
 async def send_report(bot: Bot = None):
     csv_path = f'{Config.csv_folder}report-{current_date()}.csv'
-    async with open(csv_path, 'w') as f:
+    async with open(csv_path, 'w', encoding='cp1251') as f:
         writer = AsyncWriter(f, delimiter=';', dialect='unix')
         await writer.writerow(('Сотрудник', 'Статус', 'Где работает', 'Почему не работает', 'Дата рассылки'))
         rows = await db.get_data_for_report(current_date())

@@ -1,0 +1,11 @@
+version: '3'
+
+services:
+  chatbot:
+    container_name: chatbot
+    build: .
+    command: python bot.py
+    ports:
+      - 80:80
+    volumes:
+      - ./:/chatbot/
