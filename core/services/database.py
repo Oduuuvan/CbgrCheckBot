@@ -134,6 +134,19 @@ class DataBase:
             else:
                 return None
 
+    async def __today_entry_exist(self,
+                                  user_id,
+                                  checking_time
+                                  ) -> Any:
+        """"""
+        checking_date = checking_time.split(' ')[0]
+        answer: Any = Iterable[Row]
+        async with sl.connect(self.db_path) as db:
+            cursor = await db.execute('SELECT journal_id FROM journal WHERE user_id = ? AND checking_time LIKE ?',
+                                      (user_id, checking_date+'%'))
+            answer = await cursor.fetchmany(1)
+        return bool(len(answer))
+
     async def add_journal_entry(self,
                                 checking_time: str,
                                 user_id: int,
@@ -143,26 +156,19 @@ class DataBase:
                                 ) -> Any:
         """Добавление записи в журнал"""
         status_id = await self.__get_status_id(status_name)
-        async with sl.connect(self.db_path) as db:
-            await db.execute('''INSERT INTO journal (is_check, status_id, reason_not_work, checking_time, user_id)
-                            VALUES (?, ?, ?, ?, ?)''',
-                             (int(is_check), status_id, reason_not_work, checking_time, user_id))
-            await db.commit()
-
-    async def change_journal_entry_by_date(self,
-                                           user_id: int,
-                                           checking_date: str,
-                                           is_check: bool = False,
-                                           status_name: str = None,
-                                           reason_not_work: str = None
-                                           ) -> Any:
-        """Изменение записи в журнале по конкретного пользователя за конкретный день"""
-        status_id = await self.__get_status_id(status_name)
-        async with sl.connect(self.db_path) as db:
-            await db.execute('''UPDATE journal SET is_check = ?, status_id = ?, reason_not_work = ?
-                            WHERE user_id = ? AND checking_time LIKE ?''',
-                             (int(is_check), status_id, reason_not_work, user_id, checking_date+'%'))
-            await db.commit()
+        if await self.__today_entry_exist(user_id, checking_time):
+            checking_date = checking_time.split(' ')[0]
+            async with sl.connect(self.db_path) as db:
+                await db.execute('''UPDATE journal SET is_check = ?, status_id = ?, reason_not_work = ?
+                                WHERE user_id = ? AND checking_time LIKE ?''',
+                                 (int(is_check), status_id, reason_not_work, user_id, checking_date + '%'))
+                await db.commit()
+        else:
+            async with sl.connect(self.db_path) as db:
+                await db.execute('''INSERT INTO journal (is_check, status_id, reason_not_work, checking_time, user_id)
+                                VALUES (?, ?, ?, ?, ?)''',
+                                 (int(is_check), status_id, reason_not_work, checking_time, user_id))
+                await db.commit()
 
     async def get_data_for_report(self,
                                   checking_date: str
