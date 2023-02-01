@@ -5,7 +5,7 @@ from pytz import timezone
 
 from core.filters.states_filters import StateReasonNotWork, StateFIO
 from core.services import db
-from core.keyboards.inline_keyboards import missclick_keyboard
+from core.keyboards.inline_keyboards import missclick_keyboard, missclick_and_mailing_keyboard
 from core.services.utils import current_datetime
 
 router = Router()
@@ -16,11 +16,9 @@ async def get_reason(message: Message, state: FSMContext):
     await db.add_journal_entry(checking_time=current_datetime(), user_id=message.from_user.id, is_check=True,
                                status_name='not_work', reason_not_work=message.text)
     await db.set_is_mailing(message.from_user.id, False)
-
     await message.answer(f'<b><i>Не работаю</i></b>\n\nПричина: {message.text}\n\n'
-                         f'Вы убраны из рассылки. Просьба ввести команду /mailing за день, до рабочего дня, '
-                         f'чтобы бот снова мог отправлять Вам сообщения по утрам',
-                         reply_markup=missclick_keyboard())
+                         f'Вы убраны из рассылки. Чтобы снова участвовать в рассылке, нажмите соответствующую кнопку',
+                         reply_markup=missclick_and_mailing_keyboard())
     await state.clear()
 
 

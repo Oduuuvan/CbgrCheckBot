@@ -17,3 +17,11 @@ def missclick_keyboard() -> InlineKeyboardMarkup:
     btn_missclick = InlineKeyboardButton(text='Изменить статус', callback_data=MyCallback(callback='missclick').pack())
     kb.add(btn_missclick)
     return kb.as_markup()
+
+
+def missclick_and_mailing_keyboard() -> InlineKeyboardMarkup:
+    kb = InlineKeyboardBuilder()
+    btn_missclick = InlineKeyboardButton(text='Изменить статус', callback_data=MyCallback(callback='missclick').pack())
+    btn_mailing = InlineKeyboardButton(text='Вернуть рассылку', callback_data=MyCallback(callback='mailing').pack())
+    kb.add(btn_missclick).add(btn_mailing)
+    return kb.as_markup()

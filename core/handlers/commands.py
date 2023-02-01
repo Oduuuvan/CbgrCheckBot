@@ -35,26 +35,29 @@ async def cmd_start(message: Message, state: FSMContext):
 
 @router.message(filter_stop)
 async def cmd_stop(message: Message):
-    if not await db.user_is_deleted(user_id=message.from_user.id):
+    if await db.user_is_deleted(user_id=message.from_user.id):
+        await message.answer('Я Вас не знаю -_-\nНапишите /start, и мы с Вами познакомимся')
+    else:
         await db.set_is_deleted(message.from_user.id, True)
         await message.answer('До встречи!\nЕсли снова захотите присоединиться, пишите: /start')
-    else:
-        await message.answer('Я Вас не знаю -_-\nНапишите /start, и мы с Вами познакомимся')
 
 
 @router.message(filter_mailing)
 async def cmd_mailing(message: Message):
-    if not await db.user_is_deleted(user_id=message.from_user.id):
-        await db.set_is_mailing(message.from_user.id, True)
-        await message.answer('Вы снова добавлены к рассылке!')
-    else:
+    if await db.user_is_deleted(user_id=message.from_user.id):
         await message.answer('Я Вас не знаю -_-\nНапишите /start, и мы с Вами познакомимся')
+    else:
+        if await db.user_is_mailing(user_id=message.from_user.id):
+            await message.answer('Вы участвуете в рассылке')
+        else:
+            await db.set_is_mailing(message.from_user.id, True)
+            await message.answer('Вы снова добавлены к рассылке!')
 
 
 @router.message(filter_change_name)
 async def cmd_change_name(message: Message, state: FSMContext):
-    if not await db.user_is_deleted(user_id=message.from_user.id):
+    if await db.user_is_deleted(user_id=message.from_user.id):
+        await message.answer('Я Вас не знаю -_-\nНапишите /start, и мы с Вами познакомимся')
+    else:
         await message.answer('Введите новые значения Фамилии и Имени')
         await state.set_state(StateFIO.GET_FIO)
-    else:
-        await message.answer('Я Вас не знаю -_-\nНапишите /start, и мы с Вами познакомимся')

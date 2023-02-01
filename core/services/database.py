@@ -76,6 +76,16 @@ class DataBase:
             answer = await cursor.fetchmany(1)
         return bool(len(answer))
 
+    async def user_is_mailing(self,
+                              user_id: int
+                              ) -> bool:
+        """Проверка пользователя на флаг рассылки"""
+        answer: Any = Iterable[Row]
+        async with sl.connect(self.db_path) as db:
+            cursor = await db.execute('SELECT user_id FROM users WHERE user_id = ? AND is_mailing = 1', (user_id,))
+            answer = await cursor.fetchmany(1)
+        return bool(len(answer))
+
     async def add_user(self,
                        user_id: int,
                        username: str,
