@@ -5,9 +5,9 @@ from aiogram.types import BotCommand, Message
 from core import bot
 from core.config import Config
 from core.filters.cmd_filters import filter_start, filter_stop, filter_mailing, filter_change_name, filter_test_mailing, \
-    filter_report, filter_stop_mailing
+    filter_report, filter_stop_mailing, filter_test_del_msg
 from core.filters.states_filters import StateFIO
-from core.handlers.scheduled import send_report, mailing
+from core.handlers.scheduled import send_report, mailing, delete_mailing_messages
 from core.services import db
 
 router = Router()
@@ -95,5 +95,14 @@ async def cmd_test_mailing(message: Message):
     print('test_mailing')
     if message.from_user.id == Config.admin_id:
         await mailing(bot)
+    else:
+        await message.answer(text='Извините, но вам нельзя(')
+
+
+@router.message(filter_test_del_msg)
+async def cmd_del_msg(message: Message):
+    print('test_del_msg')
+    if message.from_user.id == Config.admin_id:
+        await delete_mailing_messages(bot)
     else:
         await message.answer(text='Извините, но вам нельзя(')

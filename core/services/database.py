@@ -42,6 +42,7 @@ class DataBase:
                                             reason_not_work TEXT,
                                             checking_time TEXT,
                                             user_id INTEGER,
+                                            message_id INTEGER,
                                             FOREIGN KEY(status_id) REFERENCES status(status_id),
                                             FOREIGN KEY(user_id) REFERENCES users(user_id)
                                             )''')
@@ -182,9 +183,9 @@ class DataBase:
         if await self._today_entry_exist(user_id, checking_time):
             checking_date = checking_time.split(' ')[0]
             async with sl.connect(self.db_path) as db:
-                await db.execute('''UPDATE journal SET is_check = ?, status_id = ?, reason_not_work = ?
+                await db.execute('''UPDATE journal SET is_check = ?, status_id = ?, reason_not_work = ?, message_id = ?
                                 WHERE user_id = ? AND checking_time LIKE ?''',
-                                 (int(is_check), status_id, reason_not_work, user_id, checking_date + '%'))
+                                 (int(is_check), status_id, reason_not_work, message_id, user_id, checking_date + '%'))
                 await db.commit()
         else:
             async with sl.connect(self.db_path) as db:
@@ -211,5 +212,15 @@ class DataBase:
                                         JOIN users u ON j.user_id = u.user_id
                                         LEFT JOIN status s ON j.status_id = s.status_id
                                         WHERE j.checking_time LIKE ?''', (checking_date+'%',))
+            rows = await cursor.fetchall()
+            return rows
+
+    async def get_messages_for_delete(self,
+                                      checking_date: str
+                                      ) -> Any:
+        async with sl.connect(self.db_path) as db:
+            cursor = await db.execute('''SELECT user_id, message_id          
+                                        FROM journal 
+                                        WHERE checking_time LIKE ?''', (checking_date+'%',))
             rows = await cursor.fetchall()
             return rows
