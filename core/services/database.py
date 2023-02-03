@@ -125,6 +125,18 @@ class DataBase:
             await db.execute('''UPDATE users SET name_for_report = ? WHERE user_id = ?''', (value, user_id))
             await db.commit()
 
+    async def get_user_name_for_report(self,
+                                       user_id: int
+                                       ) -> str:
+        """Получение имени для отчета пользователя"""
+        async with sl.connect(self.db_path) as db:
+            cursor = await db.execute('''SELECT name_for_report FROM users WHERE user_id = ?''', (user_id,))
+            row = await cursor.fetchone()
+            if row is not None:
+                return row[0]
+            else:
+                return ''
+
     async def get_mailing_users(self) -> Any:
         """Получение пользователей для рассылки"""
         async with sl.connect(self.db_path) as db:
