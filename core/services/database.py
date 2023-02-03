@@ -144,9 +144,9 @@ class DataBase:
             rows = await cursor.fetchall()
             return rows
 
-    async def __get_status_id(self,
-                              status_name: str
-                              ) -> Any:
+    async def _get_status_id(self,
+                             status_name: str
+                             ) -> Any:
         """Получение id статуса по его названию"""
         async with sl.connect(self.db_path) as db:
             if status_name is not None:
@@ -156,10 +156,10 @@ class DataBase:
             else:
                 return None
 
-    async def __today_entry_exist(self,
-                                  user_id,
-                                  checking_time
-                                  ) -> Any:
+    async def _today_entry_exist(self,
+                                 user_id,
+                                 checking_time
+                                 ) -> Any:
         """"""
         checking_date = checking_time.split(' ')[0]
         answer: Any = Iterable[Row]
@@ -174,11 +174,12 @@ class DataBase:
                                 user_id: int,
                                 is_check: bool = False,
                                 status_name: str = None,
-                                reason_not_work: str = None
+                                reason_not_work: str = None,
+                                message_id: int = None
                                 ) -> Any:
         """Добавление записи в журнал"""
-        status_id = await self.__get_status_id(status_name)
-        if await self.__today_entry_exist(user_id, checking_time):
+        status_id = await self._get_status_id(status_name)
+        if await self._today_entry_exist(user_id, checking_time):
             checking_date = checking_time.split(' ')[0]
             async with sl.connect(self.db_path) as db:
                 await db.execute('''UPDATE journal SET is_check = ?, status_id = ?, reason_not_work = ?
