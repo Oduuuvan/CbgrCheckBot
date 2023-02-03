@@ -24,6 +24,6 @@ async def send_report(bot: Bot = None):
         await writer.writerow(('Сотрудник', 'Статус', 'Где работает', 'Почему не работает', 'Дата рассылки'))
         rows = await db.get_data_for_report(current_date())
         await writer.writerows(rows)
-    await bot.send_document(chat_id=Config.admin_id,
+    await bot.send_document(chat_id=Config.user_id_report,
                             document=FSInputFile(csv_path))
     await os.remove(csv_path)

@@ -6,6 +6,6 @@ services:
     build: .
     command: python bot.py
     ports:
-      - 80:80
+      - 80:80 # 88
     volumes:
       - ./:/chatbot/
