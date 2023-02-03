@@ -218,9 +218,20 @@ class DataBase:
     async def get_messages_for_delete(self,
                                       checking_date: str
                                       ) -> Any:
+        """Получение id чата и id сообщения для удаления после рассылки"""
         async with sl.connect(self.db_path) as db:
             cursor = await db.execute('''SELECT user_id, message_id          
                                         FROM journal 
                                         WHERE checking_time LIKE ?''', (checking_date+'%',))
+            rows = await cursor.fetchall()
+            return rows
+
+    async def get_uncheck_users(self,
+                                checking_date: str
+                                ) -> Any:
+        async with sl.connect(self.db_path) as db:
+            cursor = await db.execute('''SELECT user_id          
+                                        FROM journal 
+                                        WHERE is_check = 0 AND checking_time LIKE ?''', (checking_date+'%',))
             rows = await cursor.fetchall()
             return rows

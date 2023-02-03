@@ -9,7 +9,7 @@ from pytz import timezone
 from core import bot
 from core.config import Config
 from core.handlers import commands, callback, states
-from core.handlers.scheduled import mailing, send_report, delete_mailing_messages
+from core.handlers.scheduled import mailing, send_report, delete_mailing_messages, alert_uncheck_users
 from core.services import db
 from core.handlers.commands import set_commands
 
@@ -25,10 +25,10 @@ async def main() -> None:
 
     # Добавление задач по расписанию
     scheduler = AsyncIOScheduler(timezone=timezone('Europe/Moscow'))
-    scheduler.add_job(mailing, trigger=CronTrigger.from_crontab('0 8 * * MON-FRI'), kwargs={'bot': bot})
-    scheduler.add_job(send_report, trigger=CronTrigger.from_crontab('30 9 * * MON-FRI'), kwargs={'bot': bot})
-    scheduler.add_job(delete_mailing_messages, trigger=CronTrigger.from_crontab('0 10 * * MON-FRI'),
-                      kwargs={'bot': bot})
+    scheduler.add_job(mailing, trigger=CronTrigger.from_crontab('0 8 * * MON-FRI'))
+    scheduler.add_job(send_report, trigger=CronTrigger.from_crontab('29 9 * * MON-FRI'))
+    scheduler.add_job(alert_uncheck_users, trigger=CronTrigger.from_crontab('30 9 * * MON-FRI'))
+    scheduler.add_job(delete_mailing_messages, trigger=CronTrigger.from_crontab('0 10 * * MON-FRI'))
     scheduler.start()
 
     # Подключение роутеров
