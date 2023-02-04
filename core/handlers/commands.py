@@ -2,7 +2,6 @@ from aiogram import Bot, Router
 from aiogram.fsm.context import FSMContext
 from aiogram.types import BotCommand, Message
 
-from core import bot
 from core.config import Config
 from core.filters.cmd_filters import filter_start, filter_stop, filter_mailing, filter_change_name, filter_test_mailing, \
     filter_report, filter_stop_mailing, filter_test_del_msg
@@ -85,7 +84,7 @@ async def cmd_change_name(message: Message, state: FSMContext):
 @router.message(filter_report)
 async def cmd_report(message: Message):
     if message.from_user.id == Config.admin_id or message.from_user.id == Config.user_id_report:
-        await send_report(bot)
+        await send_report()
     else:
         await message.answer(text='Извините, но вам нельзя(')
 
@@ -94,7 +93,7 @@ async def cmd_report(message: Message):
 async def cmd_test_mailing(message: Message):
     print('test_mailing')
     if message.from_user.id == Config.admin_id:
-        await mailing(bot)
+        await mailing()
     else:
         await message.answer(text='Извините, но вам нельзя(')
 
@@ -103,6 +102,6 @@ async def cmd_test_mailing(message: Message):
 async def cmd_del_msg(message: Message):
     print('test_del_msg')
     if message.from_user.id == Config.admin_id:
-        await delete_mailing_messages(bot)
+        await delete_mailing_messages()
     else:
         await message.answer(text='Извините, но вам нельзя(')
