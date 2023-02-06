@@ -161,7 +161,7 @@ class DataBase:
                                  user_id,
                                  checking_time
                                  ) -> Any:
-        """"""
+        """Проверка существования записи в журнале на конкретный день"""
         checking_date = checking_time.split(' ')[0]
         answer: Any = Iterable[Row]
         async with sl.connect(self.db_path) as db:
@@ -229,9 +229,18 @@ class DataBase:
     async def get_uncheck_users(self,
                                 checking_date: str
                                 ) -> Any:
+        """Получение id не отметившихся пользователей"""
         async with sl.connect(self.db_path) as db:
             cursor = await db.execute('''SELECT user_id          
                                         FROM journal 
                                         WHERE is_check = 0 AND checking_time LIKE ?''', (checking_date+'%',))
             rows = await cursor.fetchall()
             return rows
+
+    async def clear_journal(self,
+                            checking_date: str
+                            ) -> Any:
+        """Очистка журнала до определенной даты"""
+        async with sl.connect(self.db_path) as db:
+            await db.execute('''DELETE FROM journal WHERE checking_time < ?''', (checking_date,))
+            await db.commit()

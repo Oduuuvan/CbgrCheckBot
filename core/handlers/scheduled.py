@@ -47,3 +47,7 @@ async def alert_uncheck_users():
             user_id = user[0]
             await bot.send_message(chat_id=user_id, text='Уважаемый(ая), Вам уже прилетит от Лены, но вы всё еще '
                                                          'можете отметиться')
+
+
+async def clear_journal():
+    await db.clear_journal(current_date())
