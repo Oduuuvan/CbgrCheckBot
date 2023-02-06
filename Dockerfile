@@ -8,3 +8,5 @@ WORKDIR /chatbot
 RUN pip install --upgrade pip
 COPY ./requirements.txt ./requirements.txt
 RUN pip install -r requirements.txt --no-cache-dir
+
+RUN apt update && apt install sqlite3
