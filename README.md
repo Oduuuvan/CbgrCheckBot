@@ -19,12 +19,16 @@
 Для того чтобы запустить бота на сервере, вам понадобиться [docker](https://docs.docker.com/) и [docker-compose](https://docs.docker.com/compose/)  
 ### Порядок действий
 * Скачиваем репозиторий  
+
         git clone https://github.com/Oduuuvan/CbgrCheckBot.git
+
 * Переходим в папку c проектом, затем в папку ./core, копируем файл с конфигами и изменяем всё, что необходимо любым удобным редактором  
+        
         cd CbgrCheckBot/  
         cd core/  
         cp config.py.example config.py  
         vim config.py
-* Запускаем сборку и развертывание контейнера  
+
+* Запускаем сборку и развертывание контейнера 
+
         docker compose up -d --build
-    
