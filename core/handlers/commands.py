@@ -17,7 +17,7 @@ async def set_commands(_bot: Bot):
         BotCommand(command='start', description='Начать работу с ботом'),
         BotCommand(command='stop', description='Завершить работу с ботом'),
         BotCommand(command='mailing', description='Присоединиться к рассылке'),
-        BotCommand(command='stop_mailing', description='Покинуть к рассылку'),
+        BotCommand(command='stop_mailing', description='Покинуть рассылку'),
         BotCommand(command='change_name', description='Изменить значения ФИО'),
         BotCommand(command='report', description='Получить отчет за сегодняшний день. Команда только '
                                                  'для админа')
@@ -31,7 +31,7 @@ async def cmd_start(message: Message, state: FSMContext):
         await db.add_user(message.from_user.id, message.from_user.username)
 
     if await db.user_is_deleted(user_id=message.from_user.id):
-        await message.answer('Введите свои Фамилию и Имя\n'
+        await message.answer('Введите свои ФИО. Формат: Фамилия Имя Отчество\n'
                              'Просьба отнестись серьезно. т.к. эти данные будут в отчете.\n\n'
                              'Если Вы вдруг захотите изменить данные, напишите /change_name')
         await state.set_state(StateFIO.GET_FIO)
@@ -77,7 +77,7 @@ async def cmd_change_name(message: Message, state: FSMContext):
     if await db.user_is_deleted(user_id=message.from_user.id):
         await message.answer('Я Вас не знаю -_-\nНапишите /start, и мы с Вами познакомимся')
     else:
-        await message.answer('Введите новые значения Фамилии и Имени')
+        await message.answer('Введите новое значение ФИО. Формат: Фамилия Имя Отчество')
         await state.set_state(StateFIO.GET_FIO)
 
 

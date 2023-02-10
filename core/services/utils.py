@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 
 from aiogram.types import CallbackQuery, Message
@@ -23,3 +24,9 @@ async def send_of_late_user(callback: CallbackQuery | Message):
                                text=f'Опоздун: <b><i><a href="https://t.me/{callback.from_user.username}">{user_name}'
                                     f'</a></i></b> отметился',
                                disable_web_page_preview=True)
+
+
+def validate_FIO(FIO_string: str):
+    if re.match('^([А-Я]{1}[а-я]{1,23}) ([А-Я]{1}[а-я]{1,23}) ([А-Я]{1}[а-я]{1,23})$', FIO_string) is None:
+        return False
+    return True

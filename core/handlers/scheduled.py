@@ -15,7 +15,9 @@ async def mailing():
     users = await db.get_mailing_users()
     for user in users:
         user_id = user[0]
-        message = await bot.send_message(chat_id=user_id, text='Пора отмечаться!', reply_markup=first_keyboard())
+        message = await bot.send_message(chat_id=user_id, text=f'{".".join(current_date().split("-")[::-1])} '
+                                                               f'Пора отмечаться!',
+                                         reply_markup=first_keyboard())
         await db.add_journal_entry(user_id=user_id, checking_time=current_datetime(), message_id=message.message_id)
 
 
@@ -23,7 +25,7 @@ async def send_report():
     csv_path = f'{Config.csv_folder}report-{current_date()}.csv'
     async with open(csv_path, 'w', encoding='cp1251') as f:
         writer = AsyncWriter(f, delimiter=';', dialect='unix')
-        await writer.writerow(('Сотрудник', 'Статус', 'Где работает', 'Почему не работает', 'Дата рассылки'))
+        await writer.writerow(('Пользователь', 'ФИО', 'Статус', 'Где работает', 'Почему не работает', 'Дата рассылки'))
         rows = await db.get_data_for_report(current_date())
         await writer.writerows(rows)
     await bot.send_document(chat_id=Config.user_id_report,

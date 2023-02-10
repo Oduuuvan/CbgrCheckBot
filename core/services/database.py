@@ -200,6 +200,7 @@ class DataBase:
         """Получение данных для отчета"""
         async with sl.connect(self.db_path) as db:
             cursor = await db.execute('''SELECT 
+                                            'https://t.me/' || u.username,
                                             u.name_for_report, 
                                             CASE 
                                                 WHEN j.is_check = TRUE THEN 'Отметился'
